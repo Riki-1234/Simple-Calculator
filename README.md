@@ -1,3 +1,7 @@
+# Preview
+
+![alt text](https://i.ibb.co/ZcBDDw7/calculator.png)
+
 # Keybinds
 
 > **sin** -> **Shift + S**
