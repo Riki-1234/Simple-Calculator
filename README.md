@@ -22,6 +22,6 @@
 
 >  **clear** -> **C**
 
->  **clear entity** -> **Shift + C**
+>  **clear entity** -> **Shift + E**
 
 >  **equal** ->  **Enter**
