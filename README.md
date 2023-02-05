@@ -14,8 +14,6 @@
 
 >  **cubic root** -> **T**
 
->  **percent** -> **P**
-
 >  **reciprocal** -> **R**
 
 >  **square** -> **K**
