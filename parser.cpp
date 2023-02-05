@@ -1,7 +1,6 @@
 #include "parser.h"
 #include <string>
 #include <vector>
-#include <stack>
 #include <utility>
 #include <cmath>
 

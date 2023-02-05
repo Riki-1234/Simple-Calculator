@@ -748,7 +748,7 @@ QPushButton:pressed {
      <string>CE</string>
     </property>
     <property name="shortcut">
-     <string>Shift+C</string>
+     <string>Shift+E</string>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonDivide">
@@ -930,7 +930,7 @@ QPushButton:pressed {
      <string>%</string>
     </property>
     <property name="shortcut">
-     <string>P</string>
+     <string>%</string>
     </property>
    </widget>
    <widget class="QPushButton" name="button_7">
