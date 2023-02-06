@@ -58,6 +58,8 @@ private:
 
     void clearZero();
     bool isOperator();
+    void delay(int millisecondsWait);
+    bool isDigit(const QString& expression, int i);
 
     QLabel* m_inputLine;
     QLabel* m_previewLine;

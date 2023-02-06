@@ -1,3 +1,5 @@
+#include <QTimer>
+#include <vector>
 #include "calculator.h"
 #include "./ui_calculator.h"
 #include "parser.h"
@@ -26,6 +28,25 @@ void Calculator::clearZero() {
 bool Calculator::isOperator() {
     if(m_inputLine->text().back() == '+' || m_inputLine->text().back() == '-' || m_inputLine->text().back() == '*' || m_inputLine->text().back() == '/') {
         return true;
+    }
+    return false;
+}
+
+inline void Calculator::delay(int millisecondsWait)
+{
+    QEventLoop loop;
+    QTimer timer;
+    timer.connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timer.start(millisecondsWait);
+    loop.exec();
+}
+
+bool Calculator::isDigit(const QString& expression, int i) {
+    std::vector<QChar> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    for(int j = 0; j < digits.size(); j++) {
+        if(expression[i] == digits[j]) {
+            return true;
+        }
     }
     return false;
 }
@@ -175,6 +196,31 @@ void Calculator::on_buttonEqual_clicked() {
 
     QString expression = m_inputLine->text();
 
+    size_t leftParenCounter = 0, rightParenCounter = 0, digitCounter = 0;
+    for(int i = 0, delayMilliseconds = 1600; i < expression.length(); i++) {
+        if(expression[i] == '(' && expression[i + 1] == ')') {
+            m_inputLine->setText("Invalid Syntax");
+            delay(1400);
+            m_inputLine->setText("0");
+            return;
+        }
+        else if(expression[i] == '(') {
+            leftParenCounter++;
+        }
+        else if(expression[i] == ')') {
+            rightParenCounter++;
+        }
+        else if(isDigit(expression, i)) {
+            digitCounter++;
+        }
+    }
+    if(leftParenCounter != rightParenCounter || isOperator() || digitCounter == expression.size()) {
+        m_inputLine->setText("Invalid Syntax");
+        delay(1400);
+        m_inputLine->setText("0");
+        return;
+    }
+
     m_previewLine->setText(m_inputLine->text());
     m_inputLine->setText(parser.evaluateExpression(expression));
 }
@@ -209,7 +255,7 @@ void Calculator::on_buttonReciprocal_clicked() {
     if(m_inputLine->text().isEmpty()) {
         m_inputLine->setText("1/");
     }
-    else if(m_inputLine->text().back().isDigit()) {
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
         m_inputLine->setText(m_inputLine->text() + "*1/");
     }
     else {
@@ -227,7 +273,7 @@ void Calculator::on_buttonSquareRoot_clicked() {
     if(m_inputLine->text().isEmpty()) {
         m_inputLine->setText("√(");
     }
-    else if(m_inputLine->text().back().isDigit()) {
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
         m_inputLine->setText(m_inputLine->text() + "*√(");
     }
     else {
@@ -241,7 +287,7 @@ void Calculator::on_buttonCubicRoot_clicked() {
     if(m_inputLine->text().isEmpty()) {
         m_inputLine->setText("³√(");
     }
-    else if(m_inputLine->text().back().isDigit()) {
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
         m_inputLine->setText(m_inputLine->text() + "*³√(");
     }
     else {
@@ -255,7 +301,7 @@ void Calculator::on_buttonSinus_clicked() {
     if(m_inputLine->text().isEmpty()) {
         m_inputLine->setText("sin(");
     }
-    else if(m_inputLine->text().back().isDigit()) {
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
         m_inputLine->setText(m_inputLine->text() + "*sin(");
     }
     else {
@@ -269,7 +315,7 @@ void Calculator::on_buttonCosinus_clicked() {
     if(m_inputLine->text().isEmpty()) {
         m_inputLine->setText("cos(");
     }
-    else if(m_inputLine->text().back().isDigit()) {
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
         m_inputLine->setText(m_inputLine->text() + "*cos(");
     }
     else {
@@ -283,7 +329,7 @@ void Calculator::on_buttonTangens_clicked() {
     if(m_inputLine->text().isEmpty()) {
         m_inputLine->setText("tan(");
     }
-    else if(m_inputLine->text().back().isDigit()) {
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
         m_inputLine->setText(m_inputLine->text() + "*tan(");
     }
     else {

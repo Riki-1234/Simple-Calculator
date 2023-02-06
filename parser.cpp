@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
@@ -7,11 +8,11 @@
 void Parser::shuntingYardAlgorithm(QString& inputLineContent) {   
     std::string expression = inputLineContent.toStdString();
 
+    while(expression.find("³√") != std::string::npos) {
+       expression.replace(expression.find("³√"), 3, "o");
+    }
     while(expression.find("√") != std::string::npos) {
        expression.replace(expression.find("√"), 1, 1, 'r');
-    }
-    while(expression.find("³√") != std::string::npos) {
-       expression.replace(expression.find("³√"), 1, 1, 'o');
     }
     while(expression.find("sin") != std::string::npos) {
        expression.replace(expression.find("sin"), 3, "s");
@@ -128,6 +129,11 @@ void Parser::sortExpression() {
 }
 
 void Parser::_calculateExpression(int i) {
+    for(const auto& expression : m_sortedExpression) {
+        std::cerr << expression << " ";
+    }
+    std::cerr << std::endl;
+
     if (m_sortedExpression[i + 1] == "r") {
         m_sortedExpression[i] = std::to_string(std::sqrt(std::stod(m_sortedExpression[i])));
         m_sortedExpression.erase(m_sortedExpression.begin() + (i + 1));
