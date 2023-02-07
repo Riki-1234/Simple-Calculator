@@ -163,6 +163,9 @@ void Calculator::on_buttonAdd_clicked() {
         inputLineContent += "+";
         m_inputLine->setText(inputLineContent);
     }
+    else if(m_inputLine->text().back() == '(') {
+        return;
+    }
     else if(m_inputLine->text().compare("0")) {
         m_inputLine->setText(m_inputLine->text() + "+");
     }
@@ -189,6 +192,9 @@ void Calculator::on_buttonMultiply_clicked() {
         inputLineContent += "*";
         m_inputLine->setText(inputLineContent);
     }
+    else if(m_inputLine->text().back() == '(') {
+        return;
+    }
     else if(m_inputLine->text().compare("0")) {
         m_inputLine->setText(m_inputLine->text() + "*");
     }
@@ -201,6 +207,9 @@ void Calculator::on_buttonDivide_clicked() {
 
         inputLineContent += "/";
         m_inputLine->setText(inputLineContent);
+    }
+    else if(m_inputLine->text().back() == '(') {
+        return;
     }
     else if(m_inputLine->text().compare("0")) {
         m_inputLine->setText(m_inputLine->text() + "/");
@@ -250,7 +259,15 @@ void Calculator::on_buttonEqual_clicked() {
 void Calculator::on_buttonParenthesisLeft_clicked() {
     clearZero();
 
-    m_inputLine->setText(m_inputLine->text() + "(");
+    if(m_inputLine->text().isEmpty()) {
+        m_inputLine->setText("(");
+    }
+    else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
+        m_inputLine->setText(m_inputLine->text() + "*(");
+    }
+    else {
+        m_inputLine->setText(m_inputLine->text() + "(");
+    }
 }
 
 void Calculator::on_buttonParenthesisRight_clicked() {
