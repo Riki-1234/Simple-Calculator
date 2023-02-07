@@ -57,9 +57,11 @@ private:
     Ui::Calculator *ui;
 
     void clearZero();
-    bool isOperator();
+    bool isEndOfLineOperator();
     void delay(int millisecondsWait);
     bool isDigit(const QString& expression, int i);
+    bool isOperator(const QString& expression, int i);
+    bool isEndOfLineDigit();
 
     QLabel* m_inputLine;
     QLabel* m_previewLine;

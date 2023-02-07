@@ -25,7 +25,7 @@ void Calculator::clearZero() {
     }
 }
 
-bool Calculator::isOperator() {
+bool Calculator::isEndOfLineOperator() {
     if(m_inputLine->text().back() == '+' || m_inputLine->text().back() == '-' || m_inputLine->text().back() == '*' || m_inputLine->text().back() == '/') {
         return true;
     }
@@ -45,6 +45,26 @@ bool Calculator::isDigit(const QString& expression, int i) {
     std::vector<QChar> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
     for(int j = 0; j < digits.size(); j++) {
         if(expression[i] == digits[j]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Calculator::isOperator(const QString& expression, int i) {
+    std::vector<QChar> operators = {'+', '-', '*', '/', '^', '%'};
+    for(int j = 0; j < operators.size(); j++) {
+        if(expression[i] == operators[j]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Calculator::isEndOfLineDigit() {
+    std::vector<QChar> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    for(int i = 0; i < digits.size(); i++) {
+        if(m_inputLine->text().back() == digits[i]) {
             return true;
         }
     }
@@ -137,7 +157,7 @@ void Calculator::on_buttonErase_clicked() {
 
 void Calculator::on_buttonAdd_clicked() {
     QString inputLineContent = m_inputLine->text();
-    if(isOperator()) {
+    if(isEndOfLineOperator()) {
         inputLineContent.chop(1);
 
         inputLineContent += "+";
@@ -150,7 +170,7 @@ void Calculator::on_buttonAdd_clicked() {
 
 void Calculator::on_buttonSubtract_clicked() {
     QString inputLineContent = m_inputLine->text();
-    if(isOperator()) {
+    if(isEndOfLineOperator()) {
         inputLineContent.chop(1);
 
         inputLineContent += "-";
@@ -163,7 +183,7 @@ void Calculator::on_buttonSubtract_clicked() {
 
 void Calculator::on_buttonMultiply_clicked() {
     QString inputLineContent = m_inputLine->text();
-    if(isOperator()) {
+    if(isEndOfLineOperator()) {
         inputLineContent.chop(1);
 
         inputLineContent += "*";
@@ -176,7 +196,7 @@ void Calculator::on_buttonMultiply_clicked() {
 
 void Calculator::on_buttonDivide_clicked() {
     QString inputLineContent = m_inputLine->text();
-    if(isOperator()) {
+    if(isEndOfLineOperator()) {
         inputLineContent.chop(1);
 
         inputLineContent += "/";
@@ -198,7 +218,9 @@ void Calculator::on_buttonEqual_clicked() {
 
     size_t leftParenCounter = 0, rightParenCounter = 0, digitCounter = 0;
     for(int i = 0, delayMilliseconds = 1600; i < expression.length(); i++) {
-        if(expression[i] == '(' && expression[i + 1] == ')') {
+        if(expression[i] == '(' && expression[i + 1] == ')'
+           || expression[i] == '(' && isOperator(expression, i)
+           ||  isOperator(expression, i) && expression[i + 1] == ')') {
             m_inputLine->setText("Invalid Syntax");
             delay(1400);
             m_inputLine->setText("0");
@@ -214,7 +236,7 @@ void Calculator::on_buttonEqual_clicked() {
             digitCounter++;
         }
     }
-    if(leftParenCounter != rightParenCounter || isOperator() || digitCounter == expression.size()) {
+    if(leftParenCounter != rightParenCounter || isEndOfLineOperator() || digitCounter == expression.size()) {
         m_inputLine->setText("Invalid Syntax");
         delay(1400);
         m_inputLine->setText("0");
@@ -244,7 +266,24 @@ void Calculator::on_buttonPlusMinus_clicked() {
 }
 
 void Calculator::on_buttonComma_clicked() {
-    if(m_inputLine->text().back() != '.') {
+    QString expression = m_inputLine->text();
+    for(int i = expression.length() - 1, operatorCounter = 0, commaCounter = 0; i >= 0; i--) {
+        if(operatorCounter > commaCounter) {
+            m_inputLine->setText(m_inputLine->text() + ".");
+        }
+        else if(commaCounter > operatorCounter) {
+            return;
+        }
+
+        if(isOperator(expression, i)) {
+            operatorCounter++;
+        }
+        else if(expression[i] == '.') {
+            commaCounter++;
+        }
+    }
+
+    if(isEndOfLineDigit()) {
         m_inputLine->setText(m_inputLine->text() + ".");
     }
 }

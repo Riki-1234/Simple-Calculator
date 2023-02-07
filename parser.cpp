@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
@@ -129,11 +128,6 @@ void Parser::sortExpression() {
 }
 
 void Parser::_calculateExpression(int i) {
-    for(const auto& expression : m_sortedExpression) {
-        std::cerr << expression << " ";
-    }
-    std::cerr << std::endl;
-
     if (m_sortedExpression[i + 1] == "r") {
         m_sortedExpression[i] = std::to_string(std::sqrt(std::stod(m_sortedExpression[i])));
         m_sortedExpression.erase(m_sortedExpression.begin() + (i + 1));
