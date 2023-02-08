@@ -287,6 +287,7 @@ void Calculator::on_buttonComma_clicked() {
     for(int i = expression.length() - 1, operatorCounter = 0, commaCounter = 0; i >= 0; i--) {
         if(operatorCounter > commaCounter) {
             m_inputLine->setText(m_inputLine->text() + ".");
+            break;
         }
         else if(commaCounter > operatorCounter) {
             return;
