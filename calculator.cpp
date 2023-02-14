@@ -223,6 +223,10 @@ void Calculator::on_buttonPercent_clicked() {
 void Calculator::on_buttonEqual_clicked() {
     Parser parser;
 
+    if(m_inputLine->text() == "Invalid Syntax" || m_inputLine->text() == "0") {
+        return;
+    }
+
     QString expression = m_inputLine->text();
 
     size_t leftParenCounter = 0, rightParenCounter = 0, digitCounter = 0;
@@ -328,13 +332,13 @@ void Calculator::on_buttonSquareRoot_clicked() {
     clearZero();
 
     if(m_inputLine->text().isEmpty()) {
-        m_inputLine->setText("√(");
+        m_inputLine->setText("sqrt(");
     }
     else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
-        m_inputLine->setText(m_inputLine->text() + "*√(");
+        m_inputLine->setText(m_inputLine->text() + "*sqrt(");
     }
     else {
-        m_inputLine->setText(m_inputLine->text() + "√(");
+        m_inputLine->setText(m_inputLine->text() + "sqrt(");
     }
 }
 
@@ -342,13 +346,13 @@ void Calculator::on_buttonCubicRoot_clicked() {
     clearZero();
 
     if(m_inputLine->text().isEmpty()) {
-        m_inputLine->setText("³√(");
+        m_inputLine->setText("cbrt(");
     }
     else if(m_inputLine->text().back().isDigit() || m_inputLine->text().back() == ')') {
-        m_inputLine->setText(m_inputLine->text() + "*³√(");
+        m_inputLine->setText(m_inputLine->text() + "*cbrt(");
     }
     else {
-        m_inputLine->setText(m_inputLine->text() + "³√(");
+        m_inputLine->setText(m_inputLine->text() + "cbrt(");
     }
 }
 
