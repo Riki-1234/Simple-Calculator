@@ -228,28 +228,7 @@ void Calculator::on_buttonEqual_clicked() {
     }
 
     QString expression = m_inputLine->text();
-
-    size_t leftParenCounter = 0, rightParenCounter = 0, digitCounter = 0;
-    for(int i = 0, delayMilliseconds = 1600; i < expression.length(); i++) {
-        if(expression[i] == '(' && expression[i + 1] == ')'
-           || expression[i] == '(' && isOperator(expression, i)
-           ||  isOperator(expression, i) && expression[i + 1] == ')') {
-            m_inputLine->setText("Invalid Syntax");
-            delay(1400);
-            m_inputLine->setText("0");
-            return;
-        }
-        else if(expression[i] == '(') {
-            leftParenCounter++;
-        }
-        else if(expression[i] == ')') {
-            rightParenCounter++;
-        }
-        else if(isDigit(expression, i)) {
-            digitCounter++;
-        }
-    }
-    if(leftParenCounter != rightParenCounter || isEndOfLineOperator() || digitCounter == expression.size()) {
+    if(!parser.checkSyntax(expression)) {
         m_inputLine->setText("Invalid Syntax");
         delay(1400);
         m_inputLine->setText("0");
@@ -277,7 +256,9 @@ void Calculator::on_buttonParenthesisLeft_clicked() {
 void Calculator::on_buttonParenthesisRight_clicked() {
     clearZero();
 
-    m_inputLine->setText(m_inputLine->text() + ")");
+    if(!isEndOfLineOperator()) {
+        m_inputLine->setText(m_inputLine->text() + ")");
+    }
 }
 
 void Calculator::on_buttonPlusMinus_clicked() {

@@ -19,7 +19,7 @@ bool Parser::isTopOperator() {
 
 bool Parser::isTopHighPrecedenceOperator() {
     if (m_operators.size() > 0) {
-        return (m_operators.top() == "sqrt" || m_operators.top() == "cbrt" || m_operators.top() == "sin" || m_operators.top() == "cos" || m_operators.top() == "tan");
+        return (m_operators.top() == "sqrt" || m_operators.top() == "cbrt" || m_operators.top() == "sin" || m_operators.top() == "cos" || m_operators.top() == "tan" || m_operators.top() == "^");
     }
     return false;
 }
@@ -28,29 +28,30 @@ bool Parser::isDigit(const std::string& expression, int i) {
     return (std::isdigit(expression[i]) || expression[i] == 'n' && !isSinCosTan(expression, i + 1) && !isSquareCubicRoot(expression, i + 1) || expression[i] == '.');
 }
 
+bool Parser::isAdditionMultiplicationDivision(const std::string& expression, int i) {
+    return (expression[i] == '+' || expression[i] == '*' || expression[i] == '/');
+}
+
 bool Parser::isOperator(const std::string& expression, int i) {
-    return (expression[i] == '+' || expression[i] == '*' || expression[i] == '/' );
+    return (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/' || expression[i] == '^' || expression[i] == '%');
+}
+
+bool Parser::isOperatorNoMinus(const std::string& expression, int i) {
+    return (expression[i] == '+' || expression[i] == '*' || expression[i] == '/' || expression[i] == '^' || expression[i] == '%');
+}
+
+bool Parser::isMissingMultiplication(const std::string& expression, int i) {
+    return (std::isdigit(expression[i]) && expression[i + 1] == '('
+            || expression[i] == ')' && std::isdigit(expression[i + 1])
+            || expression[i] == ')' && expression[i + 1] == '('
+            || expression[i] == '%' && expression[i + 1] == '(');
 }
 
 void Parser::lexMultiplicationAndDivision(const std::string& expression, int i) {
     if (m_operators.size() > 0) {
-        if (isTopOperator()) {
-            while (m_operators.size() != 0) {
-                m_operands.push(m_operators.top());
-                m_operators.pop();
-            }
-            m_operators.push(std::string(1, expression[i]));
-        }
-        else if (m_operators.top() == "*" || m_operators.top() == "/") {
+        if (isTopOperator() || m_operators.top() == "*" || m_operators.top() == "/") {
             m_operands.push(m_operators.top());
             m_operators.pop();
-            m_operators.push(std::string(1, expression[i]));
-        }
-        else if (isTopHighPrecedenceOperator()) {
-            while (m_operators.size() != 0) {
-                m_operands.push(m_operators.top());
-                m_operators.pop();
-            }
             m_operators.push(std::string(1, expression[i]));
         }
         else {
@@ -145,7 +146,7 @@ void Parser::lexSqrtCbrt(std::string& expression, int& i) {
     i += 3;
 }
 
-void Parser::replacePercentWithDivide(std::string& expression) {
+void Parser::replacePercentWithDivision(std::string& expression) {
     while (expression.find("%") != std::string::npos) {
         int percentIndex{};
         for (int i = 0; i < expression.size(); i++) {
@@ -160,8 +161,13 @@ void Parser::replacePercentWithDivide(std::string& expression) {
 
         expression.replace(expression.find("%"), 1, 1, '/');
     }
-    if (expression[0] == '-') {
-        expression.replace(0, 1, 1, 'n');
+}
+
+void Parser::addMissingMultiplication(std::string& expression) {
+    for (int i = 0; i < expression.size(); i++) {
+        if (isMissingMultiplication(expression, i)) {
+            expression.insert(expression.begin() + (i + 1), '*');
+        }
     }
 }
 
@@ -202,12 +208,13 @@ void Parser::eraseWhiteSpaces(std::string& expression) {
     }
 }
 
-void Parser::shuntingYardAlgorithm(QString& inputLineContent) {   
+void Parser::shuntingYardAlgorithm(QString& inputLineContent) {
     std::string expression = inputLineContent.toStdString();
-
     eraseWhiteSpaces(expression);
-    replacePercentWithDivide(expression);
+    replacePercentWithDivision(expression);
+    addMissingMultiplication(expression);
     solveMultipleMinuses(expression);
+
     if (expression[0] == '-') {
         expression.replace(0, 1, 1, 'n');
     }
@@ -236,7 +243,14 @@ void Parser::shuntingYardAlgorithm(QString& inputLineContent) {
             m_operators.pop();
         }
         else if (expression[i] == '^') {
-            m_operators.push(std::string(1, expression[i]));
+            if (isTopHighPrecedenceOperator()) {
+                m_operands.push(m_operators.top());
+                m_operators.pop();
+                m_operators.push(std::string(1, expression[i]));
+            }
+            else {
+                m_operators.push(std::string(1, expression[i]));
+            }
         }
         else if (isSquareCubicRoot(expression, i) || isSquareCubicRoot(expression, i + 1) && expression[i] == 'n') {
             lexSqrtCbrt(expression, i);
@@ -385,6 +399,42 @@ int Parser::solvePointlessExpressions(std::string& expression, int& i) {
     }
 
     return digitCount;
+}
+
+bool Parser::checkSyntax(const QString& inputLineContent) {
+    std::string expression = inputLineContent.toStdString();
+    if(expression.empty()) {
+        return false;
+    }
+    if (isOperatorNoMinus(expression, 0)) {
+        return false;
+    }
+
+    size_t leftParenCounter = 0, rightParenCounter = 0, digitCounter = 0;
+    for (int i = 0; i < expression.length(); i++) {
+        if (isOperator(expression, i) && isOperator(expression, i + 1)) {
+            return false;
+        }
+        else if (expression[i] == '(' && expression[i + 1] == ')'
+            || expression[i] == '(' && expression[i + 1] == '-' && expression[i + 2] == ')'
+            || expression[i] == '(' && isOperatorNoMinus(expression, i + 1)
+            || isOperator(expression, i) && expression[i + 1] == ')') {
+            return false;
+        }
+        else if (expression[i] == '(') {
+            leftParenCounter++;
+        }
+        else if (expression[i] == ')') {
+            rightParenCounter++;
+        }
+        else if (isDigit(expression, i)) {
+            digitCounter++;
+        }
+    }
+    if (leftParenCounter != rightParenCounter || isOperator(expression, expression.length() - 1) || digitCounter == expression.length()) {
+        return false;
+    }
+    return true;
 }
 
 QString Parser::evaluateExpression(QString& inputLineContent) {

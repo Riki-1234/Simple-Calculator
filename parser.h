@@ -9,6 +9,7 @@ class Parser
 {
 public:
     QString evaluateExpression(QString& inputLineContent);
+    bool checkSyntax(const QString& inputLineContent);
 private:
     bool isSquareCubicRoot(const std::string& expression, int i);
     bool isSinCosTan(const std::string& expression, int i);
@@ -16,6 +17,9 @@ private:
     bool isTopHighPrecedenceOperator();
     bool isDigit(const std::string& expression, int i);
     bool isOperator(const std::string& expression, int i);
+    bool isAdditionMultiplicationDivision(const std::string& expression, int i);
+    bool isOperatorNoMinus(const std::string& expression, int i);
+    bool isMissingMultiplication(const std::string& expression, int i);
 
     void lexMultiplicationAndDivision(const std::string& expression, int i);
     void lexNumbers(std::string& expression, int& i);
@@ -23,7 +27,8 @@ private:
     void lexSinCosTan(std::string& expression, int& i);
     void lexSqrtCbrt(std::string& expression, int& i);
 
-    void replacePercentWithDivide(std::string& expression);
+    void replacePercentWithDivision(std::string& expression);
+    void addMissingMultiplication(std::string& expression);
     void solveMultipleMinuses(std::string& expression);
     void eraseWhiteSpaces(std::string& expression);
 
