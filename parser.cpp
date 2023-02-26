@@ -36,6 +36,10 @@ bool Parser::isOperator(const std::string& expression, int i) {
     return (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/' || expression[i] == '^' || expression[i] == '%');
 }
 
+bool Parser::isOperatorNoPercent(const std::string& expression, int i) {
+    return (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/' || expression[i] == '^');
+}
+
 bool Parser::isOperatorNoMinus(const std::string& expression, int i) {
     return (expression[i] == '+' || expression[i] == '*' || expression[i] == '/' || expression[i] == '^' || expression[i] == '%');
 }
@@ -45,6 +49,28 @@ bool Parser::isMissingMultiplication(const std::string& expression, int i) {
             || expression[i] == ')' && std::isdigit(expression[i + 1])
             || expression[i] == ')' && expression[i + 1] == '('
             || expression[i] == '%' && expression[i + 1] == '(');
+}
+
+bool Parser::isPointlessExpression(const std::string& expression) {
+    int operatorCounter = 0;
+    for(int i = 0; i < expression.length(); i++) {
+        if(i != expression.length() - 1) {
+            if(expression[i] == '(' && expression[i + 1] == '-') {
+                if(i == 0) {
+                    i++;
+                }
+                i++;
+                continue;
+            }
+        }
+        if(isOperator(expression, i) || isSquareCubicRoot(expression, i) || isSinCosTan(expression, i)) {
+            operatorCounter++;
+        }
+    }
+    if(operatorCounter > 0) {
+        return false;
+    }
+    return true;
 }
 
 void Parser::lexMultiplicationAndDivision(const std::string& expression, int i) {
@@ -204,13 +230,40 @@ void Parser::eraseWhiteSpaces(std::string& expression) {
     for (int i = 0; i < expression.length(); i++) {
         if (expression[i] == ' ') {
             expression.erase(expression.begin() + i);
+            if(i == 0) {
+                i = -1;
+            }
+            else {
+                i--;
+            }
         }
     }
 }
 
-void Parser::shuntingYardAlgorithm(QString& inputLineContent) {
+void Parser::eraseBrackets(std::string& expression) {
+    for(int i = 0; i < expression.length(); i++) {
+        if(expression[i] == '(' || expression[i] == ')') {
+            expression.erase(expression.begin() + i);
+            if(i == 1) {
+                i = 0;
+            }
+            else {
+                i--;
+            }
+        }
+    }
+}
+
+void Parser::shuntingYardAlgorithm(QString& inputLineContent, bool& isPointless) {
     std::string expression = inputLineContent.toStdString();
     eraseWhiteSpaces(expression);
+    if(isPointlessExpression(expression)) {
+        solveMultipleMinuses(expression);
+        eraseBrackets(expression);
+        m_sortedExpression.push_back(expression);
+        isPointless = true;
+        return;
+    }
     replacePercentWithDivision(expression);
     addMissingMultiplication(expression);
     solveMultipleMinuses(expression);
@@ -385,7 +438,7 @@ void Parser::eraseUnnecessaryDecimals() {
     m_sortedExpression[0] = expression;
 }
 
-int Parser::solvePointlessExpressions(std::string& expression, int& i) {
+int Parser::digitCountFunc(std::string& expression, int& i) {
     int digitCount = 0;
     if (std::isdigit(expression[i + 1]) || expression[i] == 'n' || expression[i + 1] == '.') {
         while (isDigit(expression, i)) {
@@ -410,7 +463,7 @@ bool Parser::checkSyntax(const QString& inputLineContent) {
         return false;
     }
 
-    size_t leftParenCounter = 0, rightParenCounter = 0, digitCounter = 0;
+    size_t leftParenCounter = 0, rightParenCounter = 0;
     for (int i = 0; i < expression.length(); i++) {
         if (isOperator(expression, i) && isOperator(expression, i + 1)) {
             return false;
@@ -427,11 +480,8 @@ bool Parser::checkSyntax(const QString& inputLineContent) {
         else if (expression[i] == ')') {
             rightParenCounter++;
         }
-        else if (isDigit(expression, i)) {
-            digitCounter++;
-        }
     }
-    if (leftParenCounter != rightParenCounter || isOperator(expression, expression.length() - 1) || digitCounter == expression.length()) {
+    if (leftParenCounter != rightParenCounter || isOperatorNoPercent(expression, expression.length() - 1)) {
         return false;
     }
     return true;
@@ -439,26 +489,16 @@ bool Parser::checkSyntax(const QString& inputLineContent) {
 
 QString Parser::evaluateExpression(QString& inputLineContent) {
     std::string expression = inputLineContent.toStdString();
-    int operatorCount = 0, digitCount = 0;
-    for (int i = 0; i < expression.length(); i++) {
-        if (isOperator(expression, i) || isSquareCubicRoot(expression, i) || isSinCosTan(expression, i)) {
-            operatorCount++;
-        }
-        else if (std::isdigit(expression[i])) {
-            digitCount += solvePointlessExpressions(expression, i);
+    bool isPointless = false;
+    shuntingYardAlgorithm(inputLineContent, isPointless);
+    if(m_sortedExpression.size() > 0) {
+        if(isPointless) {
+            return QString::fromStdString(m_sortedExpression[0]);
         }
     }
-
-    if (operatorCount == 0 && digitCount == 1) {
-        return QString::fromStdString(expression);
-    }
-
-    shuntingYardAlgorithm(inputLineContent);
     sortExpression();
     calculateExpression();
     eraseUnnecessaryDecimals();
 
-    QString result = QString::fromStdString(m_sortedExpression[0]);
-
-    return result;
+    return QString::fromStdString(m_sortedExpression[0]);
 }

@@ -217,7 +217,9 @@ void Calculator::on_buttonDivide_clicked() {
 }
 
 void Calculator::on_buttonPercent_clicked() {
-    m_inputLine->setText(m_inputLine->text() + "%");
+    if(m_inputLine->text().back() != '%') {
+        m_inputLine->setText(m_inputLine->text() + "%");
+    }
 }
 
 void Calculator::on_buttonEqual_clicked() {
@@ -256,7 +258,16 @@ void Calculator::on_buttonParenthesisLeft_clicked() {
 void Calculator::on_buttonParenthesisRight_clicked() {
     clearZero();
 
-    if(!isEndOfLineOperator()) {
+    int leftParenCounter{0}, rightParenCounter{0};
+    for(const auto& character : m_inputLine->text()) {
+        if(character == '(') {
+            leftParenCounter++;
+        }
+        else if(character == ')') {
+            rightParenCounter++;
+        }
+    }
+    if(!isEndOfLineOperator() && leftParenCounter != rightParenCounter) {
         m_inputLine->setText(m_inputLine->text() + ")");
     }
 }
@@ -306,7 +317,9 @@ void Calculator::on_buttonReciprocal_clicked() {
 }
 
 void Calculator::on_buttonSquare_clicked() {
-    m_inputLine->setText(m_inputLine->text() + "^");
+    if(m_inputLine->text().back() != '^') {
+        m_inputLine->setText(m_inputLine->text() + "^");
+    }
 }
 
 void Calculator::on_buttonSquareRoot_clicked() {
